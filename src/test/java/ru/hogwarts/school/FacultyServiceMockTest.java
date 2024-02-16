@@ -8,13 +8,17 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import ru.hogwarts.school.exception.NotFoundException;
 import ru.hogwarts.school.model.Faculty;
+import ru.hogwarts.school.model.Student;
 import ru.hogwarts.school.repository.FacultyRepository;
+import ru.hogwarts.school.repository.StudentRepository;
 import ru.hogwarts.school.service.FacultyService;
+import ru.hogwarts.school.service.StudentService;
 
 import java.util.List;
 import java.util.Optional;
 
 import static org.mockito.Mockito.when;
+import static ru.hogwarts.school.constants.Constants.*;
 
 @ExtendWith(MockitoExtension.class)
 public class FacultyServiceMockTest {
@@ -22,6 +26,12 @@ public class FacultyServiceMockTest {
     private FacultyRepository facultyRepository;
     @InjectMocks
     private FacultyService facultyService;
+    @Mock
+    private StudentRepository studentRepository;
+
+    @InjectMocks
+    private StudentService studentService;
+
     @Test
     public void create_Test(){
         Faculty griffindor = new Faculty(1L, "Гриффиндор", "красный");
@@ -140,5 +150,12 @@ public class FacultyServiceMockTest {
 
         when(facultyRepository.findByNameIgnoreCase("слизеринд")).thenReturn(List.of());
         Assertions.assertEquals(List.of(), facultyService.findByName("слизеринд"));
+    }
+
+    @Test
+    public void getStudentsOnFaculty_Test(){
+        when(studentRepository.findAll()).thenReturn(List.of(POTTER, POLUMNA, CHANG, DIGGORY, GREINDGER, WISLY));
+        List<Student> studentsOfGriffindorf_expected =  List.of(POTTER, CHANG);
+        Assertions.assertEquals(studentsOfGriffindorf_expected, facultyService.getStudentsOnFaculty(1L, studentService));
     }
 }
