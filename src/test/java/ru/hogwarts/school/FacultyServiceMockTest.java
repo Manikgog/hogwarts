@@ -1,14 +1,15 @@
 package ru.hogwarts.school;
 
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import ru.hogwarts.school.exception.NotFoundException;
-import ru.hogwarts.school.model.Faculty;
-import ru.hogwarts.school.model.Student;
+import ru.hogwarts.school.entity.Faculty;
+import ru.hogwarts.school.entity.Student;
 import ru.hogwarts.school.repository.FacultyRepository;
 import ru.hogwarts.school.repository.StudentRepository;
 import ru.hogwarts.school.service.FacultyService;
@@ -28,63 +29,84 @@ public class FacultyServiceMockTest {
     private FacultyService facultyService;
     @Mock
     private StudentRepository studentRepository;
-
     @InjectMocks
     private StudentService studentService;
+    @BeforeEach
+    public void init(){
+        GRIFFINDOR.setId(1L);
+        GRIFFINDOR.setName("Гриффиндор");
+        GRIFFINDOR.setColor("красный");
+        COGTEVRAN.setId(2L);
+        COGTEVRAN.setName("Когтевран");
+        COGTEVRAN.setColor("синий");
+        PUFFENDUY.setId(3L);
+        PUFFENDUY.setName("Пуффендуй");
+        PUFFENDUY.setColor("желтый");
+        SLIZERIN.setId(4L);
+        SLIZERIN.setName("Слизерин");
+        SLIZERIN.setColor("зеленый");
 
+        POTTER.setId(1L);
+        POTTER.setName("Гарри Поттер");
+        POTTER.setAge(13);
+        POLUMNA.setId(2L);
+        POLUMNA.setName("Полумна Лавгуд");
+        POLUMNA.setAge(12);
+        CHANG.setId(3L);
+        CHANG.setName("Чжоу Чанг");
+        CHANG.setAge(13);
+        WISLY.setId(4L);
+        WISLY.setName("Рон Уизли");
+        WISLY.setAge(13);
+    }
     @Test
     public void create_Test(){
-        Faculty griffindor = new Faculty(1L, "Гриффиндор", "красный");
-        Faculty puffenduy = new Faculty(2L, "Пуффендуй", "жёлтый");
 
-        when(facultyRepository.save(griffindor)).thenReturn(griffindor);
 
-        Faculty actualResult = facultyService.create(griffindor);
-        Assertions.assertEquals(griffindor, actualResult);
+        when(facultyRepository.save(GRIFFINDOR)).thenReturn(GRIFFINDOR);
 
-        when(facultyRepository.save(puffenduy)).thenReturn(puffenduy);
+        Faculty actualResult = facultyService.create(GRIFFINDOR);
+        Assertions.assertEquals(GRIFFINDOR, actualResult);
 
-        actualResult = facultyService.create(puffenduy);
-        Assertions.assertEquals(puffenduy, actualResult);
+        when(facultyRepository.save(PUFFENDUY)).thenReturn(PUFFENDUY);
+
+        actualResult = facultyService.create(PUFFENDUY);
+        Assertions.assertEquals(PUFFENDUY, actualResult);
     }
     @Test
     public void positive_update_Test(){
-        Faculty griffindor = new Faculty(1L, "Гриффиндор", "красный");
-        Faculty puffenduy = new Faculty(2L, "Пуффендуй", "жёлтый");
-        Optional<Faculty> op = Optional.of(griffindor);
-        when(facultyRepository.save(griffindor)).thenReturn(griffindor);
+
+        Optional<Faculty> op = Optional.of(GRIFFINDOR);
+        when(facultyRepository.save(GRIFFINDOR)).thenReturn(GRIFFINDOR);
         when(facultyRepository.findById(1L)).thenReturn(op);
 
-        Faculty actual = facultyService.update(1L, griffindor);
-        Assertions.assertEquals(griffindor, actual);
+        Faculty actual = facultyService.update(1L, GRIFFINDOR);
+        Assertions.assertEquals(GRIFFINDOR, actual);
 
-        op = Optional.of(puffenduy);
-        when(facultyRepository.save(puffenduy)).thenReturn(puffenduy);
+        op = Optional.of(PUFFENDUY);
+        when(facultyRepository.save(PUFFENDUY)).thenReturn(PUFFENDUY);
         when(facultyRepository.findById(2L)).thenReturn(op);
 
-        actual = facultyService.update(2, puffenduy);
-        Assertions.assertEquals(puffenduy, actual);
+        actual = facultyService.update(2, PUFFENDUY);
+        Assertions.assertEquals(PUFFENDUY, actual);
     }
     @Test
     public void negative_update_Test(){
-        Faculty griffindor = new Faculty(1L, "Гриффиндор", "красный");
-        Faculty puffenduy = new Faculty(2L, "Пуффендуй", "жёлтый");
+
         Optional<Faculty> empty = Optional.empty();
         when(facultyRepository.findById(0L)).thenReturn(empty);
 
-        Assertions.assertThrows(NotFoundException.class, ()->facultyService.update(0, griffindor));
-        Assertions.assertThrows(NotFoundException.class, ()->facultyService.update(-1, puffenduy));
+        Assertions.assertThrows(NotFoundException.class, ()->facultyService.update(0, GRIFFINDOR));
+        Assertions.assertThrows(NotFoundException.class, ()->facultyService.update(-1, PUFFENDUY));
     }
     @Test
     public void positive_delete_Test(){
-        Faculty griffindor = new Faculty(1L, "Гриффиндор", "красный");
-        Faculty puffenduy = new Faculty(2L, "Пуффендуй", "жёлтый");
-        when(facultyRepository.findById(1L)).thenReturn(Optional.of(griffindor));
-        Faculty expected = griffindor;
+        when(facultyRepository.findById(1L)).thenReturn(Optional.of(GRIFFINDOR));
+        Faculty expected = GRIFFINDOR;
         Assertions.assertEquals(expected, facultyService.delete(1L));
 
-        when(facultyRepository.findById(2L)).thenReturn(Optional.of(puffenduy));
-        expected = puffenduy;
+        when(facultyRepository.findById(2L)).thenReturn(Optional.of(PUFFENDUY));
+        expected = PUFFENDUY;
         Assertions.assertEquals(expected, facultyService.delete(2L));
     }
     @Test
@@ -97,65 +119,41 @@ public class FacultyServiceMockTest {
     }
     @Test
     public void positive_get_Test(){
-        Faculty griffindor = new Faculty(1L, "Гриффиндор", "красный");
-        Faculty puffenduy = new Faculty(2L, "Пуффендуй", "жёлтый");
-        when(facultyRepository.findById(1L)).thenReturn(Optional.of(griffindor));
-        Assertions.assertEquals(griffindor, facultyService.get(1L));
+        when(facultyRepository.findById(1L)).thenReturn(Optional.of(GRIFFINDOR));
+        Assertions.assertEquals(GRIFFINDOR, facultyService.get(1L));
 
-        when(facultyRepository.findById(2L)).thenReturn(Optional.of(puffenduy));
-        Assertions.assertEquals(puffenduy, facultyService.get(2L));
+        when(facultyRepository.findById(2L)).thenReturn(Optional.of(PUFFENDUY));
+        Assertions.assertEquals(PUFFENDUY, facultyService.get(2L));
     }
     @Test
     public void negative_get_Test(){
         Assertions.assertThrows(NotFoundException.class, () -> facultyService.get(-1));
         Assertions.assertThrows(NotFoundException.class, () -> facultyService.get(-2));
     }
+
     @Test
-    public void positive_getAll_Test(){
-        Faculty griffindor = new Faculty(1L, "Гриффиндор", "красный");
-        Faculty puffenduy = new Faculty(2L, "Пуффендуй", "жёлтый");
-        Faculty slizerin = new Faculty(3L, "Слизерин", "зеленый");
-        Faculty kogtevran = new Faculty(4L, "Когтевран", "синий");
-        List<Faculty> listOfFaculties = List.of(griffindor, puffenduy, slizerin, kogtevran);
-        when(facultyRepository.findAll()).thenReturn(listOfFaculties);
+    public void findByNameOfColor_Test(){
+        when(facultyRepository.findByColorIgnoreCaseOrNameIgnoreCase("когтевран", "когтевран")).thenReturn(List.of(COGTEVRAN));
+        Assertions.assertEquals(List.of(COGTEVRAN), facultyService.findByColorOrName("когтевран"));
 
-        Assertions.assertEquals(listOfFaculties, facultyService.getAll());
-    }
-    @Test
-    public void findByColor_Test(){
-        Faculty griffindor = new Faculty(1L, "Гриффиндор", "красный");
-        Faculty puffenduy = new Faculty(2L, "Пуффендуй", "красный");
-        Faculty slizerin = new Faculty(3L, "Слизерин", "зеленый");
-        Faculty kogtevran = new Faculty(4L, "Когтевран", "зеленый");
-        when(facultyRepository.findByColorIgnoreCase("зеленый")).thenReturn(List.of(slizerin, kogtevran));
-        Assertions.assertEquals(List.of(slizerin, kogtevran), facultyService.findByColor("зеленый"));
+        when(facultyRepository.findByColorIgnoreCaseOrNameIgnoreCase("пуффендуй", "пуффендуй")).thenReturn(List.of(PUFFENDUY));
+        Assertions.assertEquals(List.of(PUFFENDUY), facultyService.findByColorOrName("пуффендуй"));
 
-        when(facultyRepository.findByColorIgnoreCase("красный")).thenReturn(List.of(griffindor, puffenduy));
-        Assertions.assertEquals(List.of(griffindor, puffenduy), facultyService.findByColor("красный"));
+        when(facultyRepository.findByColorIgnoreCaseOrNameIgnoreCase("желтый", "желтый")).thenReturn(List.of(PUFFENDUY));
+        Assertions.assertEquals(List.of(PUFFENDUY), facultyService.findByColorOrName("желтый"));
 
-        when(facultyRepository.findByColorIgnoreCase("белый")).thenReturn(List.of());
-        Assertions.assertEquals(List.of(), facultyService.findByColor("белый"));
-    }
-    @Test
-    public void findByName_Test(){
-        Faculty griffindor = new Faculty(1L, "Гриффиндор", "красный");
-        Faculty puffenduy = new Faculty(2L, "Пуффендуй", "красный");
-        Faculty slizerin = new Faculty(3L, "Слизерин", "зеленый");
-        Faculty kogtevran = new Faculty(4L, "Когтевран", "зеленый");
-        when(facultyRepository.findByNameIgnoreCase("когтевран")).thenReturn(List.of(kogtevran));
-        Assertions.assertEquals(List.of(kogtevran), facultyService.findByName("когтевран"));
+        when(facultyRepository.findByColorIgnoreCaseOrNameIgnoreCase("красный", "красный")).thenReturn(List.of(GRIFFINDOR));
+        Assertions.assertEquals(List.of(GRIFFINDOR), facultyService.findByColorOrName("красный"));
 
-        when(facultyRepository.findByNameIgnoreCase("пуффендуй")).thenReturn(List.of(puffenduy));
-        Assertions.assertEquals(List.of(puffenduy), facultyService.findByName("пуффендуй"));
-
-        when(facultyRepository.findByNameIgnoreCase("слизеринд")).thenReturn(List.of());
-        Assertions.assertEquals(List.of(), facultyService.findByName("слизеринд"));
+        when(facultyRepository.findByColorIgnoreCaseOrNameIgnoreCase("слизеринд", "слизеринд")).thenReturn(List.of());
+        Assertions.assertEquals(List.of(), facultyService.findByColorOrName("слизеринд"));
     }
 
     @Test
     public void getStudentsOnFaculty_Test(){
-        when(studentRepository.findAll()).thenReturn(List.of(POTTER, POLUMNA, CHANG, DIGGORY, GREINDGER, WISLY));
-        List<Student> studentsOfGriffindorf_expected =  List.of(POTTER, CHANG);
-        Assertions.assertEquals(studentsOfGriffindorf_expected, facultyService.getStudentsOnFaculty(1L, studentService));
+        when(facultyRepository.findById(1L)).thenReturn(Optional.of(GRIFFINDOR));
+        when(studentRepository.findByFacultyId(1L)).thenReturn(List.of(POTTER, POLUMNA, WISLY));
+        List<Student> studentsOfGriffindorf_expected =  List.of(POTTER, POLUMNA, WISLY);
+        Assertions.assertEquals(studentsOfGriffindorf_expected, facultyService.getStudentsOnFaculty(1L));
     }
 }

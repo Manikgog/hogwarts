@@ -1,14 +1,15 @@
 package ru.hogwarts.school;
 
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import ru.hogwarts.school.exception.NotFoundException;
-import ru.hogwarts.school.model.Faculty;
-import ru.hogwarts.school.model.Student;
+import ru.hogwarts.school.entity.Faculty;
+import ru.hogwarts.school.entity.Student;
 import ru.hogwarts.school.repository.StudentRepository;
 import ru.hogwarts.school.service.StudentService;
 
@@ -24,6 +25,36 @@ public class StudentServiceMockTest {
     private StudentRepository studentRepository;
     @InjectMocks
     private StudentService studentService;
+    @BeforeEach
+    public void init(){
+        GRIFFINDOR.setId(1L);
+        GRIFFINDOR.setName("Гриффиндор");
+        GRIFFINDOR.setColor("красный");
+        COGTEVRAN.setId(2L);
+        COGTEVRAN.setName("Когтевран");
+        COGTEVRAN.setColor("синий");
+        PUFFENDUY.setId(3L);
+        PUFFENDUY.setName("Пуффендуй");
+        PUFFENDUY.setColor("желтый");
+        SLIZERIN.setId(4L);
+        SLIZERIN.setName("Слизерин");
+        SLIZERIN.setColor("зеленый");
+
+        POTTER.setId(1L);
+        POTTER.setName("Гарри Поттер");
+        POTTER.setAge(13);
+        POTTER.setFaculty(GRIFFINDOR);
+        POLUMNA.setId(2L);
+        POLUMNA.setName("Полумна Лавгуд");
+        POLUMNA.setAge(12);
+        POLUMNA.setFaculty(GRIFFINDOR);
+        CHANG.setId(3L);
+        CHANG.setName("Чжоу Чанг");
+        CHANG.setAge(13);
+        WISLY.setId(4L);
+        WISLY.setName("Рон Уизли");
+        WISLY.setAge(13);
+    }
     @Test
     public void create_Test(){
         when(studentRepository.save(POTTER)).thenReturn(POTTER);
@@ -98,13 +129,6 @@ public class StudentServiceMockTest {
     }
 
     @Test
-    public void positive_getAll_Test(){
-        List<Student> listOfStudent = List.of(POTTER, CHANG);
-        when(studentRepository.findAll()).thenReturn(listOfStudent);
-
-        Assertions.assertEquals(listOfStudent, studentService.getAll());
-    }
-    @Test
     public void findByAge_Test(){
         when(studentRepository.findByAge(12)).thenReturn(List.of(POTTER, GREINDGER));
         Assertions.assertEquals(List.of(POTTER, GREINDGER), studentService.findByAge(12));
@@ -135,7 +159,7 @@ public class StudentServiceMockTest {
         Assertions.assertEquals(expected, studentService.getFacultyByStudentId(1L));
 
         when(studentRepository.findById(2L)).thenReturn(Optional.of(POLUMNA));
-        expected = COGTEVRAN;
+        expected = GRIFFINDOR;
          Assertions.assertEquals(expected, studentService.getFacultyByStudentId(2L));
     }
     @Test
