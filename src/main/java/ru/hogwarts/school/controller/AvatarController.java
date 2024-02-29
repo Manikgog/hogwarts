@@ -20,17 +20,17 @@ public class AvatarController {
         this.avatarService = avatarService;
     }
     @PostMapping(value = "/{id}/student", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    @Operation(summary = "добавление аватарки для студента")
+    @Operation(summary = "добавление аватарки для студента по его идентификатору")
     public ResponseEntity<Avatar> uploadAvatar(@PathVariable Long id, @RequestParam MultipartFile avatar) throws IOException {
         return avatarService.uploadAvatar(id, avatar);
     }
     @GetMapping(value = "/{id}/avatar/preview")
-    @Operation(summary = "получение превью аватарки по id аватарки")
+    @Operation(summary = "получение превью аватарки по id студента")
     public ResponseEntity<byte[]> getPreview(@PathVariable long id){
         return avatarService.getPreview(id);
     }
     @GetMapping(value = "/{id}/avatar")
-    @Operation(summary = "получение оригинального изображения аватарки по её id")
+    @Operation(summary = "получение оригинального изображения аватарки по id студента")
     public void getAvatar(long id, HttpServletResponse response) throws IOException {
         avatarService.getAvatar(id, response);
     }

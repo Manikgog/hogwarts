@@ -22,6 +22,8 @@ import java.awt.image.BufferedImage;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Objects;
+
 import static java.nio.file.StandardOpenOption.CREATE_NEW;
 
 @Service
@@ -41,7 +43,7 @@ public class AvatarService {
         }
         Student student = studentRepository.findById(studentId).orElseThrow(() -> new NotFoundException(studentId));
 
-        Path filePath = Path.of(avatarsDir, studentId + "." + getExtention(file.getOriginalFilename()));
+        Path filePath = Path.of(avatarsDir, studentId + "." + getExtention(Objects.requireNonNull(file.getOriginalFilename())));
         Files.createDirectories(filePath.getParent());
         Files.deleteIfExists(filePath);
 
@@ -53,7 +55,7 @@ public class AvatarService {
             bis.transferTo(bos);
         }
 
-        Avatar studentAvatar = avatarRepository.findById(studentId).orElse(new Avatar());
+        Avatar studentAvatar = avatarRepository.findByStudentId(studentId).orElse(new Avatar());
         studentAvatar.setFilePath(filePath.toString());
         studentAvatar.setFileSize(file.getSize());
         studentAvatar.setMediaType(file.getContentType());
@@ -64,7 +66,7 @@ public class AvatarService {
     }
 
     public ResponseEntity<byte[]> getPreview(long id){
-        Avatar preview = avatarRepository.findById(id).orElseThrow(() -> new NotFoundException(id));
+        Avatar preview = avatarRepository.findByStudentId(id).orElseThrow(() -> new NotFoundException(id));
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.parseMediaType(preview.getMediaType()));
         headers.setContentLength(preview.getData().length);
@@ -72,7 +74,7 @@ public class AvatarService {
     }
 
     public void getAvatar(long id, HttpServletResponse response) throws IOException{
-        Avatar preview = avatarRepository.findById(id).orElseThrow(() -> new NotFoundException(id));
+        Avatar preview = avatarRepository.findByStudentId(id).orElseThrow(() -> new NotFoundException(id));
         Path path = Path.of(preview.getFilePath());
         try(InputStream is = Files.newInputStream(path);
             OutputStream os = response.getOutputStream()){
