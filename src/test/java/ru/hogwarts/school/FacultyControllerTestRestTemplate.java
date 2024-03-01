@@ -7,17 +7,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.test.web.server.LocalServerPort;
-import ru.hogwarts.school.controller.AvatarController;
 import ru.hogwarts.school.controller.FacultyController;
-import ru.hogwarts.school.controller.StudentController;
 import ru.hogwarts.school.entity.Faculty;
 import ru.hogwarts.school.entity.Student;
-import ru.hogwarts.school.repository.AvatarRepository;
 import ru.hogwarts.school.repository.FacultyRepository;
 import ru.hogwarts.school.repository.StudentRepository;
-import ru.hogwarts.school.service.AvatarService;
 import ru.hogwarts.school.service.FacultyService;
-import ru.hogwarts.school.service.StudentService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,10 +26,6 @@ public class FacultyControllerTestRestTemplate {
     @LocalServerPort
     private int port;
     @Autowired
-    private StudentController studentController;
-    @Autowired
-    private StudentService studentService;
-    @Autowired
     private StudentRepository studentRepository;
     @Autowired
     private FacultyController facultyController;
@@ -43,61 +34,35 @@ public class FacultyControllerTestRestTemplate {
     @Autowired
     private FacultyRepository facultyRepository;
     @Autowired
-    private AvatarController avatarController;
-    @Autowired
-    private AvatarService avatarService;
-    @Autowired
-    private AvatarRepository avatarRepository;
-    @Autowired
     private TestRestTemplate restTemplate;
-
-    private static boolean test(Faculty f) {
-        return f.getName().equals(FACULTY_1.getName()) &&
-                f.getColor().equals(FACULTY_1.getColor());
-    }
-
     @Test
-    public void contextLoads() throws Exception {
-        Assertions.assertThat(studentController).isNotNull();
-        Assertions.assertThat(studentService).isNotNull();
+    public void contextLoads() {
         Assertions.assertThat(studentRepository).isNotNull();
-
         Assertions.assertThat(facultyController).isNotNull();
         Assertions.assertThat(facultyService).isNotNull();
         Assertions.assertThat(facultyRepository).isNotNull();
-
-        Assertions.assertThat(avatarController).isNotNull();
-        Assertions.assertThat(avatarService).isNotNull();
-        Assertions.assertThat(avatarRepository).isNotNull();
     }
+
     @Test
     public void test_create_faculty() {
 
         Assertions.assertThat(this
                         .restTemplate
                         .postForObject("http://localhost:" + port + "/faculties", FACULTY_1, Faculty.class))
-                .matches(faculty -> faculty.getName().equals(FACULTY_1.getName()) &&
-                        faculty.getColor().equals(FACULTY_1.getColor()), "данные факультетов равны");
-
-        Faculty fac = facultyRepository.findAll().stream().filter(faculty ->    // получение загруженного в базу данных объекта для его последующего удаления
-                        faculty.getName().equals(FACULTY_1.getName()) &&
-                        faculty.getColor().equals(FACULTY_1.getColor())
-        ).findFirst().get();
-
-        // удаление загруженного в БД объекта для тестирования
-        this.restTemplate
-                .delete("http://localhost:" + port + "/faculties/" + fac.getId(), Student.class);
+                .matches(faculty -> isEqual(faculty, FACULTY_1), "данные факультетов равны");
 
     }
 
     @Test
-    public void test_update(){
+    public void test_update() {
         facultyRepository.save(FACULTY_1);
 
-        Faculty faculty = facultyRepository.findAll().stream().filter(f ->
-                        f.getName().equals(FACULTY_1.getName()) &&
-                        f.getColor().equals(FACULTY_1.getColor())
-        ).findFirst().get();
+        Faculty faculty = facultyRepository
+                .findAll()
+                .stream()
+                .filter(f -> isEqual(f, FACULTY_1))
+                .findFirst()
+                .get();
 
         FACULTY_1.setId(faculty.getId());
 
@@ -107,17 +72,18 @@ public class FacultyControllerTestRestTemplate {
         org.junit.jupiter.api.Assertions.assertEquals(FACULTY_1.getId(), facultyRepository.findById(FACULTY_1.getId()).get().getId());
         org.junit.jupiter.api.Assertions.assertEquals(FACULTY_1.getName(), facultyRepository.findById(FACULTY_1.getId()).get().getName());
         org.junit.jupiter.api.Assertions.assertEquals(FACULTY_1.getColor(), facultyRepository.findById(FACULTY_1.getId()).get().getColor());
-
-        facultyRepository.delete(FACULTY_1);
     }
+
     @Test
-    public void test_delete(){
+    public void test_delete() {
         facultyRepository.save(FACULTY_1);
 
-        Faculty faculty = facultyRepository.findAll().stream().filter(f ->
-                        f.getName().equals(FACULTY_1.getName()) &&
-                        f.getColor().equals(FACULTY_1.getColor())
-        ).findFirst().get();
+        Faculty faculty = facultyRepository
+                .findAll()
+                .stream()
+                .filter(f -> isEqual(f, FACULTY_1))
+                .findFirst()
+                .get();
 
         FACULTY_1.setId(faculty.getId());
 
@@ -126,12 +92,17 @@ public class FacultyControllerTestRestTemplate {
 
         org.junit.jupiter.api.Assertions.assertEquals(Optional.empty(), facultyRepository.findById(FACULTY_1.getId()));
     }
+
     @Test
-    public void test_get(){
+    public void test_get() {
         facultyRepository.save(FACULTY_1);
 
-        Faculty faculty = facultyRepository.findAll().stream().filter(FacultyControllerTestRestTemplate::test
-        ).findFirst().get();
+        Faculty faculty = facultyRepository
+                .findAll()
+                .stream()
+                .filter(f -> isEqual(f, FACULTY_1))
+                .findFirst()
+                .get();
 
         FACULTY_1.setId(faculty.getId());
 
@@ -140,19 +111,18 @@ public class FacultyControllerTestRestTemplate {
                         .getForObject("http://localhost:" + port + "/faculties/" + FACULTY_1.getId(), Faculty.class))
                 .matches(f -> f.getId().equals(FACULTY_1.getId()) &&
                         f.getName().equals(FACULTY_1.getName()) &&
-                        f.getColor().equals(FACULTY_1.getColor()), "данные факультетов равны");
-
-        facultyRepository.delete(FACULTY_1);
+                        f.getColor().equals(FACULTY_1.getColor()), "данные факультетов не равны");
     }
+
     @Test
-    public void test_findByColor(){
+    public void test_findByColor() {
         facultyRepository.save(FACULTY_1);
         facultyRepository.save(FACULTY_2);
         facultyRepository.save(FACULTY_3);
         facultyRepository.save(FACULTY_4);
 
-        List<Faculty> redList = new ArrayList<>();
-        redList.add(FACULTY_1);
+        List<Faculty> list = new ArrayList<>();
+        list.add(FACULTY_1);
 
         Assertions.assertThat(this
                         .restTemplate
@@ -162,7 +132,7 @@ public class FacultyControllerTestRestTemplate {
                                     .getBody())
                             .stream()
                             .toList();
-                    return actualList.size() == redList.size();
+                    return actualList.size() == list.size();
                 });
 
         Assertions.assertThat(this
@@ -173,16 +143,12 @@ public class FacultyControllerTestRestTemplate {
                                     .getBody())
                             .stream()
                             .toList();
-                    return actualList.size() == redList.size();
+                    return actualList.size() == list.size();
                 });
-
-        facultyRepository.delete(FACULTY_1);
-        facultyRepository.delete(FACULTY_2);
-        facultyRepository.delete(FACULTY_3);
-        facultyRepository.delete(FACULTY_4);
     }
+
     @Test
-    public void test_getStudentsByFaculty(){
+    public void test_getStudentsByFaculty() {
         facultyRepository.save(FACULTY_1);
         facultyRepository.save(FACULTY_2);
         facultyRepository.save(FACULTY_3);
@@ -227,7 +193,7 @@ public class FacultyControllerTestRestTemplate {
                             .stream()
                             .toList();
                     return actualList.size() == faculty_1_Students.size();
-                });
+                }, "количество студентов на факультете не соответствует ожидаемому");
 
         studentRepository.delete(BING);
         studentRepository.delete(JOE);
@@ -246,7 +212,7 @@ public class FacultyControllerTestRestTemplate {
      * Метод для очистки базы данных после тестирования
      */
     @AfterEach
-    public void clearDB(){
+    public void clearDB() {
         // очистка факультетов
         List<Faculty> listFaculties = facultyRepository.findAll();
         List<Faculty> facultiesToDelete = List.of(
@@ -255,11 +221,11 @@ public class FacultyControllerTestRestTemplate {
         List<Long> idFaculties = new ArrayList<>();
         for (Faculty faculty : facultiesToDelete) {  // получение идентификаторов факультетов для их удаления из БД
             listFaculties.stream().filter(f -> f.getName()
-                    .equals(faculty.getName()) && f.getColor().equals(faculty.getColor()))
+                            .equals(faculty.getName()) && f.getColor().equals(faculty.getColor()))
                     .mapToLong(Faculty::getId).forEach(idFaculties::add);
         }
 
-        for (Long id : idFaculties){    // удаление по идентификатору
+        for (Long id : idFaculties) {    // удаление по идентификатору
             facultyRepository.deleteById(id);
         }
 
@@ -271,20 +237,20 @@ public class FacultyControllerTestRestTemplate {
         List<Long> idStudents = new ArrayList<>();
         for (Student student : studentsToDelete) {  // получение идентификаторов студентов для их удаления из БД
             listStudents.stream().filter(s -> s.getAge() == student.getAge() &&
-                    s.getName().equals(student.getName()))
+                            s.getName().equals(student.getName()))
                     .mapToLong(Student::getId).forEach(idStudents::add);
         }
 
-        for (Long id : idStudents){    // удаление по идентификатору
+        for (Long id : idStudents) {    // удаление по идентификатору
             studentRepository.deleteById(id);
         }
     }
-
-    private long getFacultyId(Faculty faculty){
-        return facultyRepository.findAll().stream().filter(s -> {
-                    return s.getName().equals(faculty.getName()) &&
-                            s.getColor().equals(faculty.getColor());
-                }
+    private static boolean isEqual(Faculty f1, Faculty f2) {
+        return f1.getName().equals(f2.getName()) &&
+                f1.getColor().equals(f2.getColor());
+    }
+    private long getFacultyId(Faculty faculty) {
+        return facultyRepository.findAll().stream().filter(s -> s.getName().equals(faculty.getName()) && s.getColor().equals(faculty.getColor())
         ).findFirst().get().getId();
     }
 }
