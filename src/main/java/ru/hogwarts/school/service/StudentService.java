@@ -22,6 +22,7 @@ public class StudentService {
                 .map(oldStudent -> {
                     oldStudent.setName(student.getName());
                     oldStudent.setAge(student.getAge());
+                    oldStudent.setFaculty(student.getFaculty());
                     return studentRepository.save(oldStudent);
                 })
                 .orElseThrow(() -> new NotFoundException(id));

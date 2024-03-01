@@ -42,7 +42,7 @@ public class FacultyController {
 
     @GetMapping(params = "nameOrColor")
     @Operation(summary = "Получение массива факультетов с указанным цветом или именем")
-    public List<Faculty> findByColor(@RequestParam String nameOrColor){
+    public List<Faculty> findByColorOrName(@RequestParam String nameOrColor){
         return facultyService.findByColorOrName(nameOrColor);
     }
 
