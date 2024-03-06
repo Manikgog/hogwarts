@@ -12,6 +12,6 @@ public class NotFoundException extends RuntimeException {
     }
     @Override
     public String getMessage(){
-        return "Ресурс с id = " + id + " не найден";
+        return "Ресурс с id = " + id + " не найден!";
     }
 }
