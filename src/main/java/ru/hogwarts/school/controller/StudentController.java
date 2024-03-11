@@ -65,7 +65,7 @@ public class StudentController {
         return studentService.getAverageAge();
     }
     @GetMapping("/5last")
-    @Operation(summary = "Получение списка пяти последний студентов")
+    @Operation(summary = "Получение списка пяти последних студентов")
     public List<Student> get5LastStudents(){
         return studentService.get5LastStudents();
     }

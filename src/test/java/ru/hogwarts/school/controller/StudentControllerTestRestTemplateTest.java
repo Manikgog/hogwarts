@@ -365,4 +365,47 @@ public class StudentControllerTestRestTemplateTest {
         assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
         assertThat(responseEntity.getBody()).isEqualTo("Ресурс с id = %d не найден!".formatted(fakeId));
     }
+    @Test
+    public void getStudentsAmountTest(){
+        int expectedAmount = students.size();
+
+        ResponseEntity<Integer> responseEntity = testRestTemplate.getForEntity(
+                buildUri("/students/amount"),
+                Integer.class
+        );
+        assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(responseEntity.getBody()).isEqualTo(expectedAmount);
+    }
+    @Test
+    public void getAverageAgeTest(){
+        float expectedAverageAge = (float) students.stream().map(Student::getAge).reduce(Integer::sum).get() /students.size();
+
+        ResponseEntity<Float> responseEntity = testRestTemplate.getForEntity(
+                buildUri("/students/averageAge"),
+                Float.class
+        );
+
+        assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(responseEntity.getBody()).isEqualTo(expectedAverageAge);
+    }
+    @Test
+    public void get5LastStudentsTest(){
+        List<Student> expectedList = new ArrayList<>();
+        for (int i = students.size() - 1; i >= students.size() - 5; i--) {
+            expectedList.add(students.get(i));
+        }
+
+        ResponseEntity<List<Student>> responseEntity = testRestTemplate.exchange(
+                buildUri("/students/5last"),
+                HttpMethod.GET,
+                null,
+                new ParameterizedTypeReference<>(){}
+        );
+
+        assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(responseEntity.getBody())
+                .usingRecursiveComparison()
+                .ignoringCollectionOrder()
+                .isEqualTo(expectedList);
+    }
 }
