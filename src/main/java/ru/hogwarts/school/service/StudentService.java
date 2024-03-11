@@ -61,5 +61,14 @@ public class StudentService {
             student.setFaculty(facultyFromDb);
         }
     }
+    public int getStudentsAmount(){
+        return studentRepository.getStudentsAmount();
+    }
+    public float getAverageAge(){
+        return studentRepository.getAverageAge();
+    }
 
+    public List<Student> get5LastStudents() {
+        return studentRepository.get5LastStudents();
+    }
 }

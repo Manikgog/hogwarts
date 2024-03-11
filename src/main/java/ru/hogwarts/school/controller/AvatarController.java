@@ -10,6 +10,7 @@ import org.springframework.web.multipart.MultipartFile;
 import ru.hogwarts.school.entity.Avatar;
 import ru.hogwarts.school.service.AvatarService;
 import java.io.IOException;
+import java.util.List;
 
 @RestController
 @RequestMapping("/avatars")
@@ -33,6 +34,11 @@ public class AvatarController {
     @Operation(summary = "получение оригинального изображения аватарки по её id")
     public void getAvatar(long id, HttpServletResponse response) throws IOException {
         avatarService.getAvatar(id, response);
+    }
+    @GetMapping(params = {"pageNumber", "size"})
+    @Operation(summary = "Получение списка аватарок постранично")
+    public ResponseEntity<List<Avatar>> getListAvatar(@RequestParam int pageNumber, @RequestParam int size){
+        return avatarService.getAvatarsList(pageNumber, size);
     }
 
 }
