@@ -390,10 +390,7 @@ public class StudentControllerTestRestTemplateTest {
     }
     @Test
     public void get5LastStudentsTest(){
-        List<Student> expectedList = new ArrayList<>();
-        for (int i = students.size() - 1; i >= students.size() - 5; i--) {
-            expectedList.add(students.get(i));
-        }
+        List<Student> expectedList = students.subList(students.size() - 5, students.size());
 
         ResponseEntity<List<Student>> responseEntity = testRestTemplate.exchange(
                 buildUri("/students/5last"),

@@ -9,6 +9,4 @@ import java.util.Optional;
 
 public interface AvatarRepository extends JpaRepository<Avatar, Long> {
     Optional<Avatar> findById(long studentId);
-    @Query(value = "SELECT data FROM public.avatars ORDER BY id ASC ", nativeQuery = true)
-    List<byte[]> getAvaratrsData();
 }

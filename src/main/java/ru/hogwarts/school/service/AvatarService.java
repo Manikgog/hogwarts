@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import ru.hogwarts.school.entity.Avatar;
 import ru.hogwarts.school.entity.Student;
+import ru.hogwarts.school.exception.IllegalParameterException;
 import ru.hogwarts.school.exception.NotFoundException;
 import ru.hogwarts.school.exception.TooBigFileException;
 import ru.hogwarts.school.repository.AvatarRepository;
@@ -23,6 +24,7 @@ import java.awt.image.BufferedImage;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 
 import static java.nio.file.StandardOpenOption.CREATE_NEW;
@@ -105,8 +107,25 @@ public class AvatarService {
     }
 
     public ResponseEntity<List<Avatar>> getAvatarsList(int pageNumber, int size) {
+        validate(pageNumber, size);
         PageRequest pageRequest = PageRequest.of(pageNumber - 1, size);
         List<Avatar> avatarsList = avatarRepository.findAll(pageRequest).getContent();
         return ResponseEntity.ok(avatarsList);
+    }
+    private void validate(int pageNumber, int size){
+        List<String> strList = new ArrayList<>();
+        if(pageNumber < 0){
+            strList.add("pageNumber");
+        }
+        if(size < 0){
+            strList.add("size");
+        }
+        if(!strList.isEmpty()){
+            StringBuilder errorMessage = new StringBuilder();
+            for (int i = 0; i < strList.size(); i++) {
+                errorMessage.append("Параметр - ").append(strList.get(i)).append(" меньше нуля.\n");
+            }
+            throw new IllegalParameterException(errorMessage.toString());
+        }
     }
 }
