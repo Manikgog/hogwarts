@@ -69,5 +69,10 @@ public class StudentController {
     public List<Student> get5LastStudents(){
         return studentService.get5LastStudents();
     }
+    @GetMapping("/last")
+    @Operation(summary = "Получение списка из указанного количества с конца списка студентов")
+    public List<Student> getLastNStudents(@RequestParam int count){
+        return studentService.getLastNStudents(count);
+    }
 
 }

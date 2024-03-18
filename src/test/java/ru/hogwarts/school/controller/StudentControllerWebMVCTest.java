@@ -1,5 +1,6 @@
 package ru.hogwarts.school.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
@@ -7,10 +8,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.mock.mockito.SpyBean;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import ru.hogwarts.school.entity.Faculty;
 import ru.hogwarts.school.entity.Student;
+import ru.hogwarts.school.exception.NotFoundException;
 import ru.hogwarts.school.repository.AvatarRepository;
 import ru.hogwarts.school.repository.FacultyRepository;
 import ru.hogwarts.school.repository.StudentRepository;
@@ -18,196 +23,215 @@ import ru.hogwarts.school.service.AvatarService;
 import ru.hogwarts.school.service.FacultyService;
 import ru.hogwarts.school.service.StudentService;
 
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static ru.hogwarts.school.constants.Constants.*;
 import static ru.hogwarts.school.constants.Constants.BING;
 
-@WebMvcTest
+@WebMvcTest(controllers = StudentController.class)
 public class StudentControllerWebMVCTest {
     @Autowired
     private MockMvc mockMvc;
+    @Autowired
+    private ObjectMapper objectMapper;
     @MockBean
     private StudentRepository studentRepository;
     @MockBean
-    private AvatarRepository avatarRepository;
-    @MockBean
     private FacultyRepository facultyRepository;
     @SpyBean
-    private FacultyService facultyService;
-    @SpyBean
     private StudentService studentService;
-    @SpyBean
-    private AvatarService avatarService;
 
     @Test
     public void test_create() throws Exception {
-        JSONObject facultyObject = new JSONObject();
-        facultyObject.put("id", BING.getFaculty().getId());
-        facultyObject.put("name", BING.getFaculty().getName());
-        facultyObject.put("color", BING.getFaculty().getColor());
+        when(facultyRepository.findById(POTTER.getFaculty().getId())).thenReturn(Optional.of(POTTER.getFaculty()));
+        when(studentRepository.save(any())).thenReturn(POTTER);
 
-        JSONObject studentObject = new JSONObject();
-        studentObject.put("id", BING.getId());
-        studentObject.put("name", BING.getName());
-        studentObject.put("age", BING.getAge());
-        studentObject.put("faculty", facultyObject);
-
-        when(studentRepository.save(any(Student.class))).thenReturn(BING);
-
-        mockMvc.perform(MockMvcRequestBuilders
-                        .post("/students")
-                        .content(studentObject.toString())
+        mockMvc.perform(
+                MockMvcRequestBuilders.post("/students")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(BING.getId()))
-                .andExpect(jsonPath("$.name").value(BING.getName()))
-                .andExpect(jsonPath("$.age").value(BING.getAge()))
-                .andExpect(jsonPath("$.faculty").value(BING.getFaculty()));
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .content(objectMapper.writeValueAsString(POTTER))
+        ) .andExpect(result -> {
+            MockHttpServletResponse response = result.getResponse();
+            Student responseStudent = objectMapper.readValue(response.getContentAsString(StandardCharsets.UTF_8), Student.class);
+            assertThat(responseStudent).usingRecursiveComparison().isEqualTo(POTTER);
+            assertThat(response.getStatus()).isEqualTo(HttpStatus.OK.value());
+        });
     }
 
     @Test
-    public void test_update() throws Exception {
-        JSONObject facultyObject = new JSONObject();
-        facultyObject.put("id", BING.getFaculty().getId());
-        facultyObject.put("name", BING.getFaculty().getName());
-        facultyObject.put("color", BING.getFaculty().getColor());
+    public void positive_test_update() throws Exception {
+        long id = 1L;
+        String newName = "Тестовое имя";
+        int newAge = 13;
 
-        JSONObject studentObject = new JSONObject();
-        studentObject.put("id", BING.getId());
-        studentObject.put("name", BING.getName());
-        studentObject.put("age", BING.getAge());
-        studentObject.put("faculty", facultyObject);
+        Student oldStudent = new Student();
+        oldStudent.setId(id);
+        oldStudent.setName("Gary Potter");
+        oldStudent.setAge(14);
+        oldStudent.setFaculty(GRIFFINDOR);
 
-        JSONObject faculty1Object = new JSONObject();
-        faculty1Object.put("id", JOE.getFaculty().getId());
-        faculty1Object.put("name", JOE.getFaculty().getName());
-        faculty1Object.put("color", JOE.getFaculty().getColor());
+        Student newStudent = new Student();
+        newStudent.setId(id);
+        newStudent.setName(newName);
+        newStudent.setAge(newAge);
+        newStudent.setFaculty(GRIFFINDOR);
 
-        JSONObject student1Object = new JSONObject();
-        student1Object.put("id", JOE.getId());
-        student1Object.put("name", JOE.getName());
-        student1Object.put("age", JOE.getAge());
-        student1Object.put("faculty", faculty1Object);
+        when(studentRepository.findById(any())).thenReturn(Optional.of(oldStudent));
+        when(facultyRepository.findById(POTTER.getFaculty().getId())).thenReturn(Optional.of(POTTER.getFaculty()));
+        when(studentRepository.save(any())).thenReturn(newStudent);
 
-        when(studentRepository.findById(any(Long.class))).thenReturn(Optional.of(BING));
-        when(studentRepository.save(any(Student.class))).thenReturn(JOE);
-        mockMvc.perform(MockMvcRequestBuilders
-                        .put("/students/" + BING.getId())
-                        .content(student1Object.toString())
+        mockMvc.perform(
+                MockMvcRequestBuilders.put("/students/{id}", id)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(JOE.getId()))
-                .andExpect(jsonPath("$.name").value(JOE.getName()))
-                .andExpect(jsonPath("$.age").value(JOE.getAge()))
-                .andExpect(jsonPath("$.faculty").value(JOE.getFaculty()));
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .content(objectMapper.writeValueAsString(newStudent))
+        ) .andExpect(result -> {
+            MockHttpServletResponse response = result.getResponse();
+            Student responseStudent = objectMapper.readValue(response.getContentAsString(StandardCharsets.UTF_8), Student.class);
+            assertThat(responseStudent).usingRecursiveComparison().isEqualTo(newStudent);
+            assertThat(response.getStatus()).isEqualTo(HttpStatus.OK.value());
+        });
+    }
+    @Test
+    public void negative_test_update() throws Exception {
+        long id = -1L;
+        String newName = "Тестовое имя";
+        int newAge = 12;
+
+        Student newStudent = new Student();
+        newStudent.setId(id);
+        newStudent.setName(newName);
+        newStudent.setAge(newAge);
+        newStudent.setFaculty(GRIFFINDOR);
+        String error = new String("Ресурс с id = " + id + " не найден!");
+        when(studentRepository.findById(id)).thenThrow(new NotFoundException(id));
+
+        mockMvc.perform(
+                MockMvcRequestBuilders.put("/students/{id}", id)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .content(objectMapper.writeValueAsString(newStudent))
+        ) .andExpect(result -> content().string(error));
     }
 
     @Test
-    public void test_delete() throws Exception {
-        JSONObject facultyObject = new JSONObject();
-        facultyObject.put("id", BING.getFaculty().getId());
-        facultyObject.put("name", BING.getFaculty().getName());
-        facultyObject.put("color", BING.getFaculty().getColor());
+    public void positive_test_delete() throws Exception {
+        long id = 1L;
 
-        JSONObject studentObject = new JSONObject();
-        studentObject.put("id", BING.getId());
-        studentObject.put("name", BING.getName());
-        studentObject.put("age", BING.getAge());
-        studentObject.put("faculty", facultyObject);
-        when(studentRepository.findById(any(Long.class))).thenReturn(Optional.of(BING));
-        mockMvc.perform(MockMvcRequestBuilders
-                        .delete("/students/" + BING.getId())
-                        .content(studentObject.toString())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(BING.getId()))
-                .andExpect(jsonPath("$.name").value(BING.getName()))
-                .andExpect(jsonPath("$.age").value(BING.getAge()))
-                .andExpect(jsonPath("$.faculty").value(BING.getFaculty()));
+        when(studentRepository.findById(any())).thenReturn(Optional.of(POTTER));
+
+        mockMvc.perform(
+                MockMvcRequestBuilders.delete("/students/{id}", id)
+        ) .andExpect(result -> {
+            MockHttpServletResponse response = result.getResponse();
+            Student responseStudent = objectMapper.readValue(response.getContentAsString(StandardCharsets.UTF_8), Student.class);
+            assertThat(responseStudent).usingRecursiveComparison().isEqualTo(POTTER);
+            assertThat(response.getStatus()).isEqualTo(HttpStatus.OK.value());
+        });
+    }
+    @Test
+    public void negative_delete_test() throws Exception {
+        long id = -1L;
+
+        String error = "Ресурс с id = " + id + " не найден!";
+        when(studentRepository.findById(id)).thenThrow(new NotFoundException(id));
+
+        mockMvc.perform(
+                MockMvcRequestBuilders.get("/students/{id}", id)
+        ) .andExpect(result -> content().string(error));
     }
 
     @Test
-    public void test_get() throws Exception {
-        JSONObject facultyObject = new JSONObject();
-        facultyObject.put("id", BING.getFaculty().getId());
-        facultyObject.put("name", BING.getFaculty().getName());
-        facultyObject.put("color", BING.getFaculty().getColor());
+    public void positive_test_get() throws Exception {
+        long id = 1L;
 
-        JSONObject studentObject = new JSONObject();
-        studentObject.put("id", BING.getId());
-        studentObject.put("name", BING.getName());
-        studentObject.put("age", BING.getAge());
-        studentObject.put("faculty", facultyObject);
-        when(studentRepository.findById(any(Long.class))).thenReturn(Optional.of(BING));
-        mockMvc.perform(MockMvcRequestBuilders
-                        .get("/students/" + BING.getId())
-                        .content(studentObject.toString())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(BING.getId()))
-                .andExpect(jsonPath("$.name").value(BING.getName()))
-                .andExpect(jsonPath("$.age").value(BING.getAge()))
-                .andExpect(jsonPath("$.faculty").value(BING.getFaculty()));
+        when(studentRepository.findById(any())).thenReturn(Optional.of(POTTER));
+
+        mockMvc.perform(
+                MockMvcRequestBuilders.get("/students/{id}", id)
+        ) .andExpect(result -> {
+            MockHttpServletResponse response = result.getResponse();
+            Student responseStudent = objectMapper.readValue(response.getContentAsString(StandardCharsets.UTF_8), Student.class);
+            assertThat(responseStudent).usingRecursiveComparison().isEqualTo(POTTER);
+            assertThat(response.getStatus()).isEqualTo(HttpStatus.OK.value());
+        });
+    }
+    @Test
+    public void negative_test_get() throws Exception {
+        long id = -1L;
+
+        String error = "Ресурс с id = " + id + " не найден!";
+        when(studentRepository.findById(id)).thenThrow(new NotFoundException(id));
+
+        mockMvc.perform(
+                MockMvcRequestBuilders.get("/students/{id}", id)
+        ) .andExpect(result -> content().string(error));
     }
 
     @Test
     public void test_findByAge() throws Exception {
-        List<Student> listStudent = new ArrayList<>();
-        listStudent.add(MONICA);
+        int age = 13;
+        List<Student> expected = List.of(POTTER, POLUMNA, WISLY, GREINDGER);
 
-        JSONObject facultyObject = new JSONObject();
-        facultyObject.put("id", MONICA.getFaculty().getId());
-        facultyObject.put("name", MONICA.getFaculty().getName());
-        facultyObject.put("color", MONICA.getFaculty().getColor());
-
-        JSONObject monica = new JSONObject();
-        monica.put("id", 0);
-        monica.put("name", MONICA.getName());
-        monica.put("age", MONICA.getAge());
-        monica.put("faculty", facultyObject);
-
-        JSONArray arrayStudents = new JSONArray();
-        arrayStudents.put(monica);
-        when(studentRepository.findByAge(any(Integer.class))).thenReturn(listStudent);
-        mockMvc.perform(MockMvcRequestBuilders
-                        .get("/students?age=" + MONICA.getAge())
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(content().string("[{\"id\":0,\"name\":\"Monica Bing\",\"age\":24,\"faculty\":{\"id\":4,\"name\":\"Ð\u009FÑ\u0083Ñ\u0084Ñ\u0084ÐµÐ½Ð´Ñ\u0083Ð¹\",\"color\":\"Ð¶ÐµÐ»Ñ\u0082Ñ\u008BÐ¹\"}}]"));
-
+        when(studentRepository.findByAge(any(Integer.class))).thenReturn(expected);
+        mockMvc.perform(
+                MockMvcRequestBuilders.get("/students?age=" + age)
+        ).andExpect(
+                result -> {
+                    MockHttpServletResponse response = result.getResponse();
+                    ArrayList<Student> responseList = objectMapper.readValue(response.getContentAsString(StandardCharsets.UTF_8), ArrayList.class);
+                    assertThat(objectMapper.writeValueAsString(responseList)).isEqualTo(objectMapper.writeValueAsString(expected));
+                }
+        );
     }
-
     @Test
-    public void test_getFacultyById() throws Exception {
-        JSONObject facultyObject = new JSONObject();
-        facultyObject.put("id", BING.getFaculty().getId());
-        facultyObject.put("name", BING.getFaculty().getName());
-        facultyObject.put("color", BING.getFaculty().getColor());
+    public void test_findByAgeBetween() throws Exception {
+        int ageMin = 10;
+        int ageMax = 15;
+        List<Student> expected = List.of(POTTER, POLUMNA, WISLY, GREINDGER);
 
-        JSONObject studentObject = new JSONObject();
-        studentObject.put("id", BING.getId());
-        studentObject.put("name", BING.getName());
-        studentObject.put("age", BING.getAge());
-        studentObject.put("faculty", facultyObject);
+        when(studentRepository.findByAgeBetween(any(Integer.class), any(Integer.class))).thenReturn(expected);
+        mockMvc.perform(
+                MockMvcRequestBuilders.get("/students?min=" + ageMin + "&max=" + ageMax)
+        ).andExpect(
+                result -> {
+                    MockHttpServletResponse response = result.getResponse();
+                    ArrayList<Student> responseList = objectMapper.readValue(response.getContentAsString(StandardCharsets.UTF_8), ArrayList.class);
+                    assertThat(objectMapper.writeValueAsString(responseList)).isEqualTo(objectMapper.writeValueAsString(expected));
+                }
+        );
+    }
+    @Test
+    public void positive_test_getFacultyById() throws Exception {
+        int id = 1;
+        when(studentRepository.findById(any())).thenReturn(Optional.of(POTTER));
+        mockMvc.perform(MockMvcRequestBuilders.get("/students/" + id + "/faculty"))
+                .andExpect(
+                        result -> {
+                            MockHttpServletResponse response = result.getResponse();
+                            Faculty responseFaculty = objectMapper.readValue(response.getContentAsString(StandardCharsets.UTF_8), Faculty.class);
+                            assertThat(objectMapper.writeValueAsString(responseFaculty)).isEqualTo(objectMapper.writeValueAsString(POTTER.getFaculty()));
+                        }
+                );
+    }
+    @Test
+    public void negative_test_getFacultyById() throws Exception {
+        Long id = -1L;
 
-        when(studentRepository.findById(any(Long.class))).thenReturn(Optional.of(BING));
-        mockMvc.perform(MockMvcRequestBuilders
-                        .get("/students/" + BING.getId() + "/faculty")
-                        .content(studentObject.toString())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(content().string("{\"id\":1,\"name\":\"Ð\u0093Ñ\u0080Ð¸Ñ\u0084Ñ\u0084Ð¸Ð½Ð´Ð¾Ñ\u0080\",\"color\":\"ÐºÑ\u0080Ð°Ñ\u0081Ð½Ñ\u008BÐ¹\"}"));
+        String error = "Ресурс с id = " + id + " не найден!";
+        when(studentRepository.findById(any())).thenThrow(new NotFoundException(id));
+
+        mockMvc.perform(
+                MockMvcRequestBuilders.get("/students/" + id + "/faculty")
+        ) .andExpect(result -> content().string(error));
     }
 
 }
