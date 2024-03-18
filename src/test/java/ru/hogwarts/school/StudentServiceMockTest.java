@@ -141,7 +141,7 @@ public class StudentServiceMockTest {
     }
     @Test
     public void findByAgeBetween_Test(){
-        when(studentRepository.findByAgeBetween(11, 12)).thenReturn(List.of(POTTER, GREINDGER));
+        when(studentRepository.findByAgeBetween(11,12)).thenReturn(List.of(POTTER, GREINDGER));
         Assertions.assertEquals(List.of(POTTER, GREINDGER), studentService.findByAgeBetween(11, 12));
 
         when(studentRepository.findByAgeBetween(13, 14)).thenReturn(List.of(CHANG, DIGGORY, WISLY));
@@ -159,8 +159,7 @@ public class StudentServiceMockTest {
         Assertions.assertEquals(expected, studentService.getFacultyByStudentId(1L));
 
         when(studentRepository.findById(2L)).thenReturn(Optional.of(POLUMNA));
-        expected = GRIFFINDOR;
-         Assertions.assertEquals(expected, studentService.getFacultyByStudentId(2L));
+        Assertions.assertEquals(expected, studentService.getFacultyByStudentId(2L));
     }
     @Test
     public void negative_getFacultyByStudentId_Test(){

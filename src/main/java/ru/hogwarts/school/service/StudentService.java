@@ -71,4 +71,8 @@ public class StudentService {
     public List<Student> get5LastStudents() {
         return studentRepository.get5LastStudents();
     }
+
+    public List<Student> getLastNStudents(int count) {
+        return studentRepository.getLastNStudents(count);
+    }
 }
