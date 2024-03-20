@@ -4,13 +4,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import net.datafaker.Faker;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.test.web.server.LocalServerPort;
-import org.springframework.mock.web.MockMultipartFile;
-import org.springframework.web.multipart.MultipartFile;
 import ru.hogwarts.school.entity.Faculty;
 import ru.hogwarts.school.entity.Student;
 import ru.hogwarts.school.repository.AvatarRepository;
@@ -88,13 +85,5 @@ public class AvatarControllerTestRestTemplateTest {
     private String buildUri(String uriStartsWithSlash){
         return "http://localhost:%d%s".formatted(port, uriStartsWithSlash);
     }
-    @Test
-    public void uploadAvatarPositiveTest(){
-        long id = students.get(faker.random().nextInt(students.size())).getId();
-        byte[] image = new byte[]{1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
-        MultipartFile avatar = new MockMultipartFile("student", image);
 
-
-
-    }
 }

@@ -2,6 +2,8 @@ package ru.hogwarts.school.service;
 
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpHeaders;
@@ -38,6 +40,7 @@ public class AvatarService {
     private final AvatarRepository avatarRepository;
     private final StudentRepository studentRepository;
     private final AvatarMapper avatarMapper;
+    Logger logger = LoggerFactory.getLogger(AvatarService.class);
     public AvatarService(AvatarRepository avatarRepository,
                          StudentRepository studentRepository,
                          AvatarMapper avatarMapper){
@@ -46,7 +49,9 @@ public class AvatarService {
         this.avatarMapper = avatarMapper;
     }
     public ResponseEntity uploadAvatar(Long studentId, MultipartFile file) throws IOException {
+        logger.info("The uploadAvatar(Long studentId, MultipartFile file) method was called");
         if(file.getSize() > 1024 * 300){
+            logger.error("The file size of the photo is larger 1024*300 bytes.");
             throw new TooBigFileException(file.getName());
         }
         Student student = studentRepository.findById(studentId).orElseThrow(() -> new NotFoundException(studentId));
@@ -74,6 +79,7 @@ public class AvatarService {
     }
 
     public ResponseEntity<byte[]> getPreview(long id){
+        logger.info("The getPreview(long id) method was called");
         Student student = studentRepository.findById(id).orElseThrow(() -> new NotFoundException(id));
         Avatar preview = avatarRepository.findByStudent(student).orElseThrow(() -> new NotFoundException(student.getId()));
         HttpHeaders headers = new HttpHeaders();
@@ -83,6 +89,7 @@ public class AvatarService {
     }
 
     public void getAvatar(long id, HttpServletResponse response) throws IOException{
+        logger.info("The getAvatar(long id, HttpServletResponse response) method was called");
         Avatar preview = avatarRepository.findById(id).orElseThrow(() -> new NotFoundException(id));
         Path path = Path.of(preview.getFilePath());
         try(InputStream is = Files.newInputStream(path);
@@ -93,10 +100,12 @@ public class AvatarService {
         }
     }
     public String getExtention(String fileName){
+        logger.info("The getExtention(String fileName) method was called");
         return fileName.substring(fileName.lastIndexOf('.') + 1);
     }
 
     private byte[] generateImagePreview(Path file) throws IOException{
+        logger.info("The generateImagePreview(Path file) method was called");
         try(InputStream is = Files.newInputStream(file);
             BufferedInputStream bis = new BufferedInputStream(is, 1024);
             ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
@@ -113,6 +122,7 @@ public class AvatarService {
     }
 
     public List<AvatarDto> getAvatars(int page, int size) {
+        logger.info("The getAvatars(int page, int size) method was called");
         return avatarRepository.findAll(PageRequest.of(page-1, size)).get()
                 .map(avatarMapper::toDto)
                 .collect(Collectors.toList());

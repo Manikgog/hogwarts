@@ -26,18 +26,18 @@ public class FacultyController {
     @PutMapping("/{id}")
     @Operation(summary = "Изменение факультета по идентификатору")
     public Faculty update(@PathVariable long id, @RequestBody Faculty faculty){
-        return facultyService.update(id, faculty);
+        return facultyService.update(id, faculty).get();
     }
     @DeleteMapping("/{id}")
     @Operation(summary = "Удаление факультета по идентификатору")
     public ResponseEntity<Faculty> delete(@PathVariable long id){
-        Faculty deleted = facultyService.delete(id);
+        Faculty deleted = facultyService.delete(id).get();
         return ResponseEntity.ok(deleted);
     }
     @GetMapping("/{id}")
     @Operation(summary = "Получение факультета по идентификатору")
     public Faculty get(@PathVariable long id){
-        return facultyService.get(id);
+        return facultyService.get(id).get();
     }
 
     @GetMapping(params = "nameOrColor")
