@@ -25,18 +25,18 @@ public class StudentController {
     @PutMapping("/{id}")
     @Operation(summary = "Изменение студента")
     public Student update(@PathVariable long id, @RequestBody Student student){
-        return studentService.update(id, student);
+        return studentService.update(id, student).get();
     }
     @DeleteMapping("/{id}")  //http://localhost:8080/students/1
     @Operation(summary = "Удаление студента по идентификатору")
     public ResponseEntity<Student> delete(@PathVariable long id){
-        Student deleted = studentService.delete(id);
+        Student deleted = studentService.delete(id).get();
         return ResponseEntity.ok(deleted);
     }
     @GetMapping("/{id}") //http://localhost:8080/students/1
     @Operation(summary = "Получение студента по идентификатору")
     public Student get(@PathVariable long id){
-        return studentService.get(id);
+        return studentService.get(id).get();
     }
 
     @GetMapping(params = "age")
