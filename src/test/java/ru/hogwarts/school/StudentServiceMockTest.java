@@ -10,12 +10,14 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import ru.hogwarts.school.exception.NotFoundException;
 import ru.hogwarts.school.entity.Faculty;
 import ru.hogwarts.school.entity.Student;
+import ru.hogwarts.school.repository.FacultyRepository;
 import ru.hogwarts.school.repository.StudentRepository;
 import ru.hogwarts.school.service.StudentService;
 
 import java.util.List;
 import java.util.Optional;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static ru.hogwarts.school.constants.Constants.*;
 
@@ -23,6 +25,8 @@ import static ru.hogwarts.school.constants.Constants.*;
 public class StudentServiceMockTest {
     @Mock
     private StudentRepository studentRepository;
+    @Mock
+    private FacultyRepository facultyRepository;
     @InjectMocks
     private StudentService studentService;
     @BeforeEach
@@ -58,7 +62,7 @@ public class StudentServiceMockTest {
     @Test
     public void create_Test(){
         when(studentRepository.save(POTTER)).thenReturn(POTTER);
-
+        when(facultyRepository.findById(any())).thenReturn(Optional.of(GRIFFINDOR));
         Student actualResult = studentService.create(POTTER);
         Assertions.assertEquals(POTTER, actualResult);
 
@@ -72,6 +76,7 @@ public class StudentServiceMockTest {
         Optional<Student> op = Optional.of(POTTER);
         when(studentRepository.save(POTTER)).thenReturn(POTTER);
         when(studentRepository.findById(2L)).thenReturn(op);
+        when(facultyRepository.findById(any())).thenReturn(Optional.of(GRIFFINDOR));
 
         Student actual = studentService.update(2, POTTER);
         Assertions.assertEquals(POTTER, actual);
