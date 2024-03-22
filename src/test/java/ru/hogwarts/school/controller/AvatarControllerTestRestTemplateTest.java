@@ -10,8 +10,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.test.web.server.LocalServerPort;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.http.*;
+import org.springframework.util.LinkedMultiValueMap;
 import ru.hogwarts.school.entity.Avatar;
 import ru.hogwarts.school.entity.Faculty;
 import ru.hogwarts.school.entity.Student;
@@ -22,6 +23,7 @@ import ru.hogwarts.school.repository.StudentRepository;
 import java.io.BufferedInputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -98,13 +100,13 @@ public class AvatarControllerTestRestTemplateTest {
     }
     private void createAvatars() throws IOException {
         Avatar avatar = new Avatar();
-        FileInputStream fis = new FileInputStream("avatars/4.jpg");
+        FileInputStream fis = new FileInputStream("src/test/picture_source/1.jpg");
         BufferedInputStream bis = new BufferedInputStream(fis);
         byte[] bytesArray = bis.readAllBytes();
         avatar.setData(bytesArray);
         avatar.setMediaType(MediaType.MULTIPART_FORM_DATA_VALUE);
-        Student student = students.get(faker.random().nextInt(students.size()));
-        avatar.setFilePath("avatars/4.jpg");
+        Student student = students.get(0);
+        avatar.setFilePath("src/test/picture_destination/1.jpg");
         avatar.setStudent(student);
         avatar.setFileSize(bytesArray.length);
         avatar.setId(1L);
@@ -116,7 +118,19 @@ public class AvatarControllerTestRestTemplateTest {
     }
     @Test
     public void uploadAvatar_positive_test(){
+        LinkedMultiValueMap<String, Object> parameters = new LinkedMultiValueMap<String, Object>();
 
+        parameters.add("avatar", new FileSystemResource(Path.of("src/test/picture_source/1.jpg")));
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.MULTIPART_FORM_DATA);
+
+        HttpEntity<LinkedMultiValueMap<String, Object>> entity = new HttpEntity<LinkedMultiValueMap<String, Object>>(parameters, headers);
+
+        ResponseEntity<String> response = testRestTemplate.exchange(buildUri("/avatars/1/student"), HttpMethod.POST, entity, String.class, "");
+
+        // Expect Ok
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
     }
     @Test
     public void uploadAvatar_negative_test(){
