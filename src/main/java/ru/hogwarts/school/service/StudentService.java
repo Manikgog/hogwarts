@@ -3,15 +3,15 @@ package ru.hogwarts.school.service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-import ru.hogwarts.school.exception.NotFoundException;
 import ru.hogwarts.school.entity.Faculty;
 import ru.hogwarts.school.entity.Student;
+import ru.hogwarts.school.exception.NotFoundException;
 import ru.hogwarts.school.repository.FacultyRepository;
 import ru.hogwarts.school.repository.StudentRepository;
+
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.LongStream;
-import java.util.stream.Stream;
 
 @Service
 public class StudentService {
@@ -110,7 +110,7 @@ public class StudentService {
         return studentRepository
                 .findAll()
                 .stream()
-                .map(s -> s.getName())
+                .map(Student::getName)
                 .filter(name -> name.charAt(0) == finalLetter)
                 .sorted()
                 .toList();
