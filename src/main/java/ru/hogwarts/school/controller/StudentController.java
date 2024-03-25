@@ -59,11 +59,6 @@ public class StudentController {
     public int getStudentsAmount(){
         return studentService.getStudentsAmount();
     }
-    @GetMapping("/averageAge")
-    @Operation(summary = "Получение среднего возраста студентов")
-    public float getAverageAge(){
-        return studentService.getAverageAge();
-    }
     @GetMapping("/5last")
     @Operation(summary = "Получение списка пяти последних студентов")
     public List<Student> get5LastStudents(){
@@ -74,5 +69,24 @@ public class StudentController {
     public List<Student> getLastNStudents(@RequestParam int count){
         return studentService.getLastNStudents(count);
     }
-
+    @GetMapping("/students_with_name_begin_letter")
+    @Operation(summary = "Получение списка имен студентов, начинающихся по умолчанию с буквы 'А', или с другой буквы, введённой пользователем")
+    public List<String> getNamesStartsWithChar(@RequestParam(value = "letter", required = false) Character letter){
+        return studentService.getNameIsStartsWithA(letter);
+    }
+    @GetMapping("/longestName")
+    @Operation(summary = "Получение самого длинного имени")
+    public String getLongestName(){
+        return studentService.getLongestName();
+    }
+    @GetMapping("/averageAge")
+    @Operation(summary = "Получение среднего возраста студентов")
+    public float getAverageAge(){
+        return studentService.getAverageAge();
+    }
+    @GetMapping("/calculating")
+    @Operation
+    public long getCalculating(){
+        return studentService.getCalculating();
+    }
 }

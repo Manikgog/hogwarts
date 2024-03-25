@@ -3,13 +3,15 @@ package ru.hogwarts.school.service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-import ru.hogwarts.school.exception.NotFoundException;
 import ru.hogwarts.school.entity.Faculty;
 import ru.hogwarts.school.entity.Student;
+import ru.hogwarts.school.exception.NotFoundException;
 import ru.hogwarts.school.repository.FacultyRepository;
 import ru.hogwarts.school.repository.StudentRepository;
+
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.LongStream;
 
 @Service
 public class StudentService {
@@ -90,10 +92,6 @@ public class StudentService {
         logger.info("The getStudentsAmount() method is called.");
         return studentRepository.getStudentsAmount();
     }
-    public float getAverageAge(){
-        logger.info("The getAverageAge() method is called.");
-        return studentRepository.getAverageAge();
-    }
 
     public List<Student> get5LastStudents() {
         logger.info("The get5LastStudents() method is called.");
@@ -103,5 +101,37 @@ public class StudentService {
     public List<Student> getLastNStudents(int count) {
         logger.info("The getLastNStudents(int count) method is called.");
         return studentRepository.getLastNStudents(count);
+    }
+    public List<String> getNameIsStartsWithA(Character letter) {
+        if(letter == null){
+            letter = 'A';
+        }
+        Character finalLetter = letter;
+        return studentRepository
+                .findAll()
+                .stream()
+                .map(Student::getName)
+                .filter(name -> name.charAt(0) == finalLetter)
+                .sorted()
+                .toList();
+    }
+
+    public float getAverageAge(){
+        logger.info("The getAverageAge() method is called.");
+        return (float)studentRepository
+                .findAll()
+                .stream()
+                .mapToInt(Student::getAge)
+                .average()
+                .orElseThrow(RuntimeException::new);
+    }
+
+    public String getLongestName() {
+        Integer maxLength = studentRepository.findAll().stream().map(Student::getName).map(String::length).reduce(0, (max, size) -> size > max ? size : max);
+        return studentRepository.findAll().stream().map(Student::getName).filter(s -> s.length() == maxLength).limit(1).findAny().get();
+    }
+
+    public long getCalculating() {
+        return LongStream.rangeClosed(1, 1000000).sum();
     }
 }
