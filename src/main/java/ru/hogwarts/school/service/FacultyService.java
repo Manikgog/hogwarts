@@ -65,4 +65,9 @@ public class FacultyService {
         logger.info("The getStudentsOnFaculty(long faculty_id) method was called");
         return studentRepository.findByFacultyId(get(faculty_id).get().getId());
     }
+
+    public String getLongestName() {
+        Integer maxLength = facultyRepository.findAll().stream().map(Faculty::getName).map(String::length).reduce(0, (max, size) -> size > max ? size : max);
+        return facultyRepository.findAll().stream().map(Faculty::getName).filter(s -> s.length() == maxLength).limit(1).findAny().get();
+    }
 }
