@@ -111,7 +111,7 @@ public class StudentService {
                 .findAll()
                 .stream()
                 .map(Student::getName)
-                .filter(name -> name.charAt(0) == finalLetter)
+                .filter(name -> name.toUpperCase().charAt(0) == finalLetter)
                 .sorted()
                 .toList();
     }
@@ -133,5 +133,36 @@ public class StudentService {
 
     public long getCalculating() {
         return LongStream.rangeClosed(1, 1000000).sum();
+    }
+
+    public void printStudentsInParallel() {
+        List<Student> listOfStudents = studentRepository.findAll().stream().limit(6).toList();
+        System.out.println("Основной поток: " + listOfStudents.get(0).getName());
+        System.out.println("Основной поток: " + listOfStudents.get(1).getName());
+        new Thread(() -> {
+            System.out.println("Первый параллельный поток: " + listOfStudents.get(2).getName());
+            System.out.println("Первый параллельный поток: " + listOfStudents.get(3).getName());
+        }).start();
+        new Thread(() -> {
+            System.out.println("Второй параллельный поток: " + listOfStudents.get(4).getName());
+            System.out.println("Второй параллельный поток: " + listOfStudents.get(5).getName());
+        }).start();
+    }
+
+    public void printStudentsInParallelSynchronized() {
+        List<Student> listOfStudents = studentRepository.findAll().stream().limit(6).toList();
+        printStudents("Основной поток: ", List.of(listOfStudents.get(0), listOfStudents.get(1)));
+        new Thread(() -> {
+            printStudents("Первый поток: ", List.of(listOfStudents.get(2), listOfStudents.get(3)));
+        }).start();
+        new Thread(() -> {
+            printStudents("Второй поток: ", List.of(listOfStudents.get(4), listOfStudents.get(5)));
+        }).start();
+    }
+
+    private synchronized void printStudents(String threadNumber, List<Student> list){
+        list.forEach((s) -> {
+            System.out.println(threadNumber + s.getName());
+        });
     }
 }
